@@ -25,8 +25,7 @@ public class ClimaService {
             ciudadCodificada = URLEncoder.encode(ciudad, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            // En caso de error en la codificación, puedes devolver un error o una ciudad no válida
-            return new Clima(ciudad, "Error al codificar la ciudad", 0.0);
+            return new Clima(ciudad, "Error al codificar la ciudad", 0.0, 0.0, 0.0, 0.0);
         }
 
         // Generar la URL con la ciudad codificada
@@ -36,9 +35,6 @@ public class ClimaService {
                 .queryParam("lang", "es")
                 .toUriString();
 
-        // Imprimir la URL generada para depuración
-        System.out.println("🌎 URL generada: " + url);
-
         try {
             // Solicitar datos a la API
             WeatherApiResponse response = restTemplate.getForObject(url, WeatherApiResponse.class);
@@ -47,14 +43,17 @@ public class ClimaService {
                 return new Clima(
                         response.getLocation().getName(),
                         response.getCurrent().getCondition().getText(),
-                        response.getCurrent().getTempC()
+                        response.getCurrent().getTempC(),
+                        response.getCurrent().getHumidity(),
+                        response.getCurrent().getFeelslikeC(),
+                        response.getCurrent().getWindKph()
                 );
             } else {
-                return new Clima(ciudad, "Datos no disponibles", 0.0);
+                return new Clima(ciudad, "Datos no disponibles", 0.0, 0.0, 0.0, 0.0);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new Clima(ciudad, "Error al obtener datos", 0.0);
+            return new Clima(ciudad, "Error al obtener datos", 0.0, 0.0, 0.0, 0.0);
         }
     }
 }

@@ -45,6 +45,9 @@ public class WeatherApiResponse {
         @JsonProperty("temp_c")
         private double tempC;
 
+        @JsonProperty("feelslike_c")
+        private double feelslike_c; // Sensación térmica en Celsius
+
         private int humidity;
 
         @JsonProperty("wind_kph")
@@ -84,7 +87,16 @@ public class WeatherApiResponse {
         public void setCondition(Condition condition) {
             this.condition = condition;
         }
+
+        public double getFeelslikeC() {
+            return feelslike_c;  // Asegúrate de que se esté retornando el valor correcto
+        }
+
+        public void setFeelslikeC(double feelslike_c) {
+            this.feelslike_c = feelslike_c;
+        }
     }
+
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Condition {

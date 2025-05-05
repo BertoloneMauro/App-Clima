@@ -1,96 +1,115 @@
 package com.example.climaapp.javafx;
 
+import com.example.climaapp.model.Clima;
+import com.example.climaapp.service.ClimaService;
 import javafx.application.Application;
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.*;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
-
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.Scanner;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ClimaApp extends Application {
 
-    private TextField ciudadInput;
-    private TextArea resultadoArea;
+    private Label temperaturaLabel;
+    private ImageView iconoClima;
+    private VBox datosExtras;
 
+    private ClimaService climaService = new ClimaService(); // Instancia el servicio
 
     @Override
-    public void start(Stage primaryStage) {
-        Label ciudadLabel = new Label("Ingrese la ciudad:");
-        ciudadInput = new TextField();
-        Button buscarButton = new Button("Buscar Clima");
-        resultadoArea = new TextArea();
-        resultadoArea.setEditable(false);
-
-        buscarButton.setOnAction(e -> buscarClima());
-
-        VBox root = new VBox(10, ciudadLabel, ciudadInput, buscarButton, resultadoArea);
+    public void start(Stage stage) {
+        // Contenedor principal
+        VBox root = new VBox(20);
+        root.setAlignment(Pos.TOP_CENTER);
         root.setPadding(new Insets(20));
 
-        Scene scene = new Scene(root, 400, 300);
-        primaryStage.setTitle("App de Clima");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        // Fondo degradado azul -> celeste
+        Stop[] stops = new Stop[] {
+                new Stop(0, Color.web("#0066cc")),
+                new Stop(1, Color.web("#87cefa"))
+        };
+        LinearGradient gradient = new LinearGradient(
+                0, 0, 0, 1, true, CycleMethod.NO_CYCLE, stops
+        );
+        root.setBackground(new Background(new BackgroundFill(gradient, CornerRadii.EMPTY, null)));
+
+        // Campo de búsqueda
+        TextField ciudadInput = new TextField();
+        ciudadInput.setPromptText("Ingresá una ciudad");
+        ciudadInput.setMaxWidth(200);
+
+        Button buscarBtn = new Button("Buscar");
+
+        HBox buscador = new HBox(10, ciudadInput, buscarBtn);
+        buscador.setAlignment(Pos.CENTER);
+
+        // Temperatura e ícono
+        temperaturaLabel = new Label("--°C");
+        temperaturaLabel.setFont(Font.font("Arial", 60));
+        temperaturaLabel.setTextFill(Color.WHITE);
+
+        iconoClima = new ImageView();
+        iconoClima.setFitHeight(80);
+        iconoClima.setFitWidth(80);
+
+        HBox climaPrincipal = new HBox(10, temperaturaLabel, iconoClima);
+        climaPrincipal.setAlignment(Pos.CENTER);
+
+        // Datos secundarios
+        datosExtras = new VBox(5);
+        datosExtras.setAlignment(Pos.CENTER);
+        actualizarDatos("Ciudad: ---", "Humedad: --%", "Sensación térmica: --°C", "Viento: -- km/h");
+
+        // Acción del botón para buscar el clima
+        buscarBtn.setOnAction(e -> {
+            String ciudad = ciudadInput.getText().trim();
+            if (!ciudad.isEmpty()) {
+                // Llamamos al servicio para obtener el clima de la ciudad
+                Clima clima = climaService.obtenerClimaDeCiudad(ciudad);
+
+                // Actualizamos los datos en la UI
+                temperaturaLabel.setText(clima.getTemperatura() + "°C");
+                iconoClima.setImage(new Image("https://openweathermap.org/img/wn/01d@2x.png"));  // Reemplaza con icono real si es necesario
+
+                // Actualizamos los otros datos
+                actualizarDatos(
+                        "Ciudad: " + clima.getCiudad(),
+                        "Descripción: " + clima.getDescripcion(),
+                        "Humedad: " + clima.getHumedad() + "%",
+                        "Sensación Térmica: " + clima.getSensacionTermica() + "°C",
+                        "Viento: " + clima.getViento() + " km/h"
+                );
+            }
+        });
+
+
+        // Agregar todo
+        root.getChildren().addAll(buscador, climaPrincipal, datosExtras);
+
+        // Escena
+        Scene scene = new Scene(root, 500, 450);
+        stage.setTitle("Clima Actual");
+        stage.setScene(scene);
+        stage.show();
     }
 
-    private void buscarClima() {
-        String ciudad = ciudadInput.getText().trim();
-        if (ciudad.isEmpty()) {
-            resultadoArea.setText("Por favor, ingrese una ciudad.");
-            return;
+    private void actualizarDatos(String... datos) {
+        datosExtras.getChildren().clear();
+        for (String d : datos) {
+            Label label = new Label(d);
+            label.setFont(Font.font("Arial", 14));
+            label.setTextFill(Color.WHITE);
+            datosExtras.getChildren().add(label);
         }
-
-        Task<Void> task = new Task<Void>() {
-            @Override
-
-            protected Void call() throws Exception {
-                String ciudadCodificada = URLEncoder.encode(ciudad, StandardCharsets.UTF_8);
-                try {
-                    String urlString = "http://localhost:8080/api/clima/" + ciudadCodificada;
-                    URL url = new URL(urlString);
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setRequestMethod("GET");
-
-                    Scanner scanner = new Scanner(conn.getInputStream());
-                    StringBuilder json = new StringBuilder();
-                    while (scanner.hasNext()) {
-                        json.append(scanner.nextLine());
-                    }
-                    scanner.close();
-
-                    ObjectMapper mapper = new ObjectMapper();
-                    Map<String, Object> datos = mapper.readValue(json.toString(), Map.class);
-
-                    String resultado = "Ciudad: " + datos.get("ciudad") + "\n"
-                            + "Descripción: " + datos.get("descripcion") + "\n"
-                            + "Temperatura: " + datos.get("temperatura") + " °C\n"
-                            + "Humedad: " + datos.get("humedad") + "%\n"
-                            + "Viento: " + datos.get("viento_kph") + " km/h";
-
-                    updateMessage(resultado);
-
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    updateMessage("Error al obtener el clima.");
-                }
-                return null;
-            }
-        };
-
-        resultadoArea.textProperty().bind(task.messageProperty());
-        new Thread(task).start();
     }
 
     public static void main(String[] args) {
-        launch(args);
+        launch();
     }
 }
