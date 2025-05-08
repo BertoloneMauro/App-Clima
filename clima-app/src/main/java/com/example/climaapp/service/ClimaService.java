@@ -19,7 +19,6 @@ public class ClimaService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public Clima obtenerClimaDeCiudad(String ciudad) {
-        // Codificar la ciudad para manejar espacios y caracteres especiales
         String ciudadCodificada = null;
         try {
             ciudadCodificada = URLEncoder.encode(ciudad, StandardCharsets.UTF_8.toString());
@@ -28,15 +27,14 @@ public class ClimaService {
             return new Clima(ciudad, "Error al codificar la ciudad", 0.0, 0.0, 0.0, 0.0);
         }
 
-        // Generar la URL con la ciudad codificada
+    
         String url = UriComponentsBuilder.fromHttpUrl(BASE_URL)
                 .queryParam("key", API_KEY)
-                .queryParam("q", ciudadCodificada)  // Usar la ciudad codificada
+                .queryParam("q", ciudadCodificada)  
                 .queryParam("lang", "es")
                 .toUriString();
 
         try {
-            // Solicitar datos a la API
             WeatherApiResponse response = restTemplate.getForObject(url, WeatherApiResponse.class);
 
             if (response != null) {
