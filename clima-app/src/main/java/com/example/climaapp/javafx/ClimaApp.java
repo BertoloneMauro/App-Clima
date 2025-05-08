@@ -20,16 +20,14 @@ public class ClimaApp extends Application {
     private ImageView iconoClima;
     private VBox datosExtras;
 
-    private ClimaService climaService = new ClimaService(); // Instancia el servicio
+    private ClimaService climaService = new ClimaService(); 
 
     @Override
     public void start(Stage stage) {
-        // Contenedor principal
         VBox root = new VBox(20);
         root.setAlignment(Pos.TOP_CENTER);
         root.setPadding(new Insets(20));
 
-        // Fondo degradado azul -> celeste
         Stop[] stops = new Stop[] {
                 new Stop(0, Color.web("#0066cc")),
                 new Stop(1, Color.web("#87cefa"))
@@ -61,12 +59,12 @@ public class ClimaApp extends Application {
         HBox climaPrincipal = new HBox(10, temperaturaLabel, iconoClima);
         climaPrincipal.setAlignment(Pos.CENTER);
 
-        // Datos secundarios
+        // Demas datos
         datosExtras = new VBox(5);
         datosExtras.setAlignment(Pos.CENTER);
         actualizarDatos("Ciudad: ---", "Humedad: --%", "Sensación térmica: --°C", "Viento: -- km/h");
 
-        // Acción del botón para buscar el clima
+        // Acción del boton
         buscarBtn.setOnAction(e -> {
             String ciudad = ciudadInput.getText().trim();
             if (!ciudad.isEmpty()) {
@@ -77,7 +75,7 @@ public class ClimaApp extends Application {
                 temperaturaLabel.setText(clima.getTemperatura() + "°C");
                 iconoClima.setImage(new Image("https://openweathermap.org/img/wn/01d@2x.png"));  // Reemplaza con icono real si es necesario
 
-                // Actualizamos los otros datos
+                
                 actualizarDatos(
                         "Ciudad: " + clima.getCiudad(),
                         "Descripción: " + clima.getDescripcion(),
@@ -89,10 +87,9 @@ public class ClimaApp extends Application {
         });
 
 
-        // Agregar todo
         root.getChildren().addAll(buscador, climaPrincipal, datosExtras);
 
-        // Escena
+ 
         Scene scene = new Scene(root, 500, 450);
         stage.setTitle("Clima Actual");
         stage.setScene(scene);
