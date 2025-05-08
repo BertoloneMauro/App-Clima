@@ -46,7 +46,7 @@ public class WeatherApiResponse {
         private double tempC;
 
         @JsonProperty("feelslike_c")
-        private double feelslike_c; // Sensación térmica en Celsius
+        private double feelslike_c; // Sensación termica en celsius
 
         private int humidity;
 
@@ -89,7 +89,7 @@ public class WeatherApiResponse {
         }
 
         public double getFeelslikeC() {
-            return feelslike_c;  // Asegúrate de que se esté retornando el valor correcto
+            return feelslike_c;  
         }
 
         public void setFeelslikeC(double feelslike_c) {
